@@ -1,0 +1,15 @@
+# Arduino to Sensor
+VCC of sensor to 3.5V of Arduino
+Ground pin to ground pin of Arduino
+DO pin to pin 6 of the Arduino
+
+# Relay module and Arduino
+VCC(DC+) pin to 5V of Arduino
+Ground pin(DC-) to Ground pin of Arduino
+Iron pin(IN) to pin 3 of Arduino
+
+# Relay,water pump and battery
+NC pin of relay to +ve(red) of water pump
+COM PIN of relay to +ve of battery
+-ve of water pump to -ve of battery
+
