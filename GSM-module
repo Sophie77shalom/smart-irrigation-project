@@ -1,0 +1,62 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial GSM(7, 8); // RX, TX pins of GSM module connected to Arduino pins 7 and 8
+int water; // variable to store the water level
+
+void setup() {
+  pinMode(3, OUTPUT); // output pin for relay board, this will send signal to the relay
+  pinMode(6, INPUT); // input pin coming from soil sensor
+  Serial.begin(9600); // initialize serial communication with computer
+  GSM.begin(9600); // initialize serial communication with GSM module
+  
+  // Wait for the module to respond to AT commands
+  GSM.println("Initializing...");
+  delay(1000);
+  GSM.println("AT");
+  delay(1000);
+  if (GSM.available()) {
+    Serial.println("GSM module initialized");
+  } else {
+    Serial.println("GSM module not responding");
+  }
+  GSM.println("AT+CMGF=1");
+  delay(1000);
+}
+
+void loop() {
+  water = digitalRead(6); // reading the signal from the soil sensor
+  
+  static bool waterLevel = false; // variable to store the previous water level
+  
+  if (water == HIGH && waterLevel == true) {
+    // water level has dropped from high to low
+    digitalWrite(3, LOW); // cut the relay
+    Serial.println("Water level: Low"); // display "Water level: High" on the Serial Monitor
+    sendSMS("Water pump turned on"); // send message to notify end of water pump operation
+    waterLevel = false; // set water level to low
+  } 
+  else if (water == LOW && waterLevel == false) {
+    // water level has increased from low to high
+    digitalWrite(3, HIGH); // continue providing signal and water supply
+    Serial.println("Water level: High"); // display "Water level: Low" on the Serial Monitor
+    sendSMS("Water pump turned off"); // send message to notify start of water pump operation
+    waterLevel = true; // set water level to high
+  }
+  
+  delay(400);
+}
+
+// Function to send SMS using the GSM module
+void sendSMS(String message) {
+  GSM.println("AT+CMGS=\"+254708714589\""); // replace XXXXXXXXX with the recipient's phone number
+  delay(1000);
+  if (GSM.available()) {
+    Serial.println("Sending message: " + message);
+  } else {
+    Serial.println("Error sending message");
+  }
+  GSM.println(message);
+  delay(1000);
+  GSM.write(0x1A); // send CTRL+Z to end the message
+  delay(1000);
+}
